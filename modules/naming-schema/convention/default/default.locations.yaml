@@ -1,0 +1,15 @@
+#
+# ################################################################################################
+# ## This file is for mapping locations to their abbreviations.
+#
+
+global: glob
+
+westeurope: euwe
+West Europe: euwe
+
+germanynorth: geno
+Germany North: geno
+
+germanywestcentral: gewc
+Germany West Central: gewc

@@ -1,0 +1,12 @@
+#
+# ################################################################################################
+# ## This file is for mapping abbreviations to resources.
+
+azurerm:
+  container_registry::default: acr
+
+  storage_account::default: st
+
+  disk::default: disk
+  disk::data: datadisk
+  disk::os: osdisk

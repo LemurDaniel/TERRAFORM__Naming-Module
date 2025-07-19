@@ -1,0 +1,50 @@
+#
+# Provide the naming schema for all resources here
+#
+# This is split into three parts:
+# - Settings: Defines the settings for the naming schema.
+# - Mappings: Defines the mappings for the naming schema.
+# - Patterns: Defines the patterns for the naming schema.
+
+#
+# //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# The settings for the naming schema.
+
+settings:
+  indexModifier: 1
+enforceLowerCase:
+  default: true
+
+  azurerm:
+    default: false
+    container_registry: true
+    storage_account: true
+
+#
+# //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# Custom mappings for the naming schema.
+# - A mapping maps one value to another on name generation.
+# - For example on the environment parameter, it maps the environment name to a short form.
+
+mappings:
+  environment:
+    development: dev
+    staging: stg
+    production: prod
+    test: tst
+
+#
+# //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# The patterns for the naming schema.
+
+patterns:
+  default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
+
+  azurerm:
+    default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
+
+    container_registry:
+      default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
+
+    storage_account:
+      default: "<TYPE>-<LOCATION><ENVIRONMENT><NAME><INDEX;%02s>"
