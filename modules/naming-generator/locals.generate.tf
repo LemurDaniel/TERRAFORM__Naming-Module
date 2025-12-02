@@ -4,16 +4,19 @@ locals {
     for component in local.pattern :
     {
       isIndex = component.isIndex
-      format  = component.format
+      format  = component.paramFormat
       value = coalesce([
-        // When NOT Parameter, return the value itself
+        # When NOT Parameter, return the value itself
         !component.isParameter ? component.value : null,
 
-        // When Parameter, return the parameter value
-        component.isParameter ? lookup(local.parameters, component.paramName, null) : null,
+        #When is UniqueId return a substring of the random UUID
+        component.isUniqueId ? substr(local.random_uuid, 0, component.uniqueIdNum) : null,
 
-        // When Parameter and required, return the parameter value
-        component.isParameter && component.isRequired ? local.parameters[component.paramName] : null,
+        # When Parameter, return the parameter value
+        !component.isUniqueId && component.isParameter ? lookup(local.parameters, component.paramName, null) : null,
+
+        # When Parameter and required, return the parameter value
+        !component.isUniqueId && component.isParameter && component.isRequired ? local.parameters[component.paramName] : null,
       ]...)
     }
   ]
@@ -22,15 +25,15 @@ locals {
     for num in range(var.index.start, var.index.count) :
     [
       for component in local.name_generated :
-      // Makes the index adjustment if the component is an index
-      // else applies the correct formatting
+      # Makes the index adjustment if the component is an index
+      # else applies the correct formatting
       component.isIndex ? format(component.format, num + local.index) : format(component.format, component.value)
     ]
   ]
 
   name_final = [
     for name in local.name_formatted :
-    local.enforceLowerCase ? lower(join("", compact(name))) : join("", compact(name))
+    local.enforce_lower_case ? lower(join("", compact(name))) : join("", compact(name))
   ]
 
 }

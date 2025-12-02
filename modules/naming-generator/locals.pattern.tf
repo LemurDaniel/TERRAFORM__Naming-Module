@@ -36,20 +36,49 @@ locals {
 
   pattern_compacted = compact(split("~&", replace(replace(local.pattern_selected, "<", "~&<"), ">", ">~&")))
 
-  pattern = [
+  pattern_transform = [
     for component in local.pattern_compacted :
     {
       raw   = component
-      value = split(";", replace(replace(component, "<", ""), ">", ""))[0]
-
+      value = replace(replace(component, "<", ""), ">", "")
 
       isRequired  = !strcontains(component, "?")
       isParameter = strcontains(component, "<") && strcontains(component, ">")
-      isIndex     = strcontains(lower(component), "index") && strcontains(component, ">") && strcontains(component, "<")
+    }
+  ]
 
-      paramName = lower(split(";", replace(replace(component, "<", ""), ">", ""))[0])
+  pattern_tranform_2 = [
+    for component in local.pattern_transform :
+    {
+      raw   = component.raw
+      value = component.value
 
-      format = strcontains(component, ";") ? replace(split(";", component)[1], ">", "") : "%s"
+      paramName   = lower(split(";", component.value)[0])
+      paramFormat = strcontains(component.value, ";") ? split(";", component.value)[1] : "%s"
+
+      isRequired  = component.isRequired
+      isParameter = component.isParameter
+
+      isIndex    = strcontains(lower(component.value), "index") && component.isParameter
+      isUniqueId = strcontains(lower(component.value), "unique_id") && component.isParameter
+    }
+  ]
+
+  pattern = [
+    for component in local.pattern_tranform_2 :
+    {
+      raw = component.raw
+
+      value       = component.value
+      paramName   = component.paramName
+      paramFormat = component.paramFormat
+
+      isRequired  = component.isRequired
+      isParameter = component.isParameter
+
+      isIndex     = component.isIndex
+      isUniqueId  = component.isUniqueId
+      uniqueIdNum = component.isUniqueId ? parseint(replace(component.paramName, "unique_id_", ""), 10) : null
     }
   ]
 }

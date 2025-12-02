@@ -1,0 +1,62 @@
+#
+# ################################################################################################
+# ## (Optional) Define default parameters.
+
+default_parameters:
+
+#
+# ################################################################################################
+# ## Define general settings.
+
+index_modifier: 1
+
+enforce_lower_case:
+  default: true
+
+  azurerm:
+    default: false
+    container_registry: true
+    storage_account: true
+
+#
+# ################################################################################################
+# ## Define any mappings for the schema.
+
+mappings:
+  # Map location names to their corresponding shortnames.
+  location:
+    global: glob
+
+    westeurope: euwe
+    West Europe: euwe
+
+    germanynorth: geno
+    Germany North: geno
+
+    germanywestcentral: gewc
+    Germany West Central: gewc
+
+  # Use shortened environment names.
+  environment:
+    development: dev
+    staging: stg
+    test: tst
+    production: prod
+
+#
+# ################################################################################################
+# ## Define the patterns for generating names.
+
+patterns:
+  default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>-<UNIQUE_ID_4>"
+
+  azurerm:
+    default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
+
+    container_registry:
+      default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
+
+    storage_account:
+      default: "<TYPE><LOCATION><ENVIRONMENT><NAME><INDEX;%02s>"
+      # <name_id>: "<pattern>"
+      # <name_kind>: "<pattern>"

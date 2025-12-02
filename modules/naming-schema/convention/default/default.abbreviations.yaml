@@ -7,6 +7,21 @@ azurerm:
 
   storage_account::default: st
 
+  virtual_network::default: vnet
+  subnet::default: snet
+
   disk::default: disk
   disk::data: datadisk
   disk::os: osdisk
+
+  network_security_group::default: nsg
+
+  network_interface::default: nic
+
+  private_endpoint::default: pep
+
+  cosmosdb_account::default: cosmos
+
+  search_service::default: srch
+
+  ai_foundry::default: aif

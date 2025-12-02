@@ -2,48 +2,59 @@
 locals {
   parent_path = abspath(format("%s/convention/%s/%s", path.module, var.convention, var.convention))
 
-  file = {
-    abbreviations = yamldecode(file(format("%s.abbreviations.yaml", local.parent_path)))
-    locations     = yamldecode(file(format("%s.locations.yaml", local.parent_path)))
 
-    settings = coalesce(var.default_naming, try(yamldecode(file(format("%s.naming.yaml", local.parent_path))), null)).settings
-    patterns = coalesce(var.default_naming, try(yamldecode(file(format("%s.naming.yaml", local.parent_path))), null)).patterns
-    mappings = coalesce(var.default_naming, try(yamldecode(file(format("%s.naming.yaml", local.parent_path))), null)).mappings
+  default_abbreviations = yamldecode(file(format("%s.abbreviations.yaml", local.parent_path)))
+  default_naming        = yamldecode(file(format("%s.naming.yaml", local.parent_path)))
+
+  # This is to bypass consistent-type errors with coalesce and inline-if.
+  naming = [
+    var.naming,
+    local.default_naming
+  ][var.naming == null ? 1 : 0]
+}
+
+resource "random_uuid" "id" {}
+
+output "random" {
+  description = "Outputs a random source for unique naming ids."
+  value = {
+    uuid = random_uuid.id.result
   }
 }
 
 
-output "locations" {
-  description = "Output the locations part of the schema."
-  value       = local.file.locations
+output "index_modifier" {
+  description = "Output the index modifier"
+  value       = lookup(local.naming, "index_modifier", 1)
 }
 
-output "resources" {
+output "enforce_lower_case" {
+  description = "Output lowercase settings."
+  value = lookup(local.naming, "enforce_lower_case", {
+    default : true
+  })
+}
+
+
+
+output "abbreviations" {
   description = "Output the resources part of the schema."
-  value       = local.file.abbreviations
-}
-
-output "settings" {
-  description = "Output the settings part of the schema."
-  value       = local.file.settings
+  value       = local.default_abbreviations
 }
 
 output "mappings" {
-  description = "Output the mappings part of the schema."
-  value       = local.file.mappings
+  description = "Output the mappings for resources."
+  value       = coalesce(local.naming.mappings, {})
 }
 
 output "patterns" {
   description = "Output the patterns part of the schema."
-  value       = local.file.patterns
+  value       = local.naming.patterns
 }
 
-output "default_parameter" {
+
+
+output "default_parameters" {
   description = "Output the default parameters for the schema."
-  value = merge(
-    {
-      location = var.default_location
-    },
-    var.default_parameter
-  )
+  value       = merge(coalesce(local.naming.default_parameters, {}), var.parameters)
 }

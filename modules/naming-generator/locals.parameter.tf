@@ -2,81 +2,120 @@
 locals {
 
   resource = {
-    full     = var.resource
-    provider = split("_", var.resource)[0]
-    type     = split("::", split("_", var.resource)[1])[0]
+    full = var.resource
 
+    # provider part of the resource.
+    # - azurerm_storage_account => azurerm
+    provider = split("_", var.resource)[0]
+
+    # Retrives the actual resource part.
+    # - azurerm_storage_account::data_lake => storage_account
+    type = join("_", slice(split("_", split("::", var.resource)[0]), 1, length(split("_", var.resource))))
+
+    # The kind is a modifier for the resource type. 
+    # - azurerm_disk::os    => kind = os
+    # - azurerm_disk::data  => kind = data
+    # - azurerm_disk        => kind = default
+
+    # This is used for
+    # - mapping to the correct abbreviation in default.abbreviations.yaml
+    # - (optional) define additional patterns only for that subkind in default.naming.yaml
     kind = strcontains(var.resource, "::") ? split("::", var.resource)[1] : "default"
   }
+
 
 
   /*
     This checks the schema.resources for the correct abbreviation for the resource.
     It processes the schema resources in the following order:
-    - Match to <resourceType>::<id>
-    - Match to <resourceType>::<kind>
-    - Match to <resourceType>::default
-    - Match to <resourceType>
+    - >> Match to <resourceType>::<id>
+    - >> Match to <resourceType>::<kind>
+    - >> Match to <resourceType>::default
+    - >> Match to <resourceType>
   */
 
-  resources_provider = lookup(var.schema.resources, local.resource.provider, {})
+  resources_provider = lookup(var.schema.abbreviations, local.resource.provider, {})
   abbreviation = coalesce([
-    // Match to <resourceType>::<id>
+    # >> Match to <resourceType>::<id>
     lookup(local.resources_provider, "${local.resource.type}::${var.naming_id}", null),
-    // Match to <resourceType>::<kind>
+    # >> Match to <resourceType>::<kind>
     lookup(local.resources_provider, "${local.resource.type}::${local.resource.kind}", null),
-    // Match to <resourceType>::default
+    # >> Match to <resourceType>::default
     lookup(local.resources_provider, "${local.resource.type}::default", null),
-    // Match to <resourceType>
+    # >> Match to <resourceType>
     lookup(local.resources_provider, local.resource.type, null),
   ]...)
+
+
 
   /*
     Checks if lowercase enforcement is required for the resource.
     It processes the schema settings in the following order:
-    - Match to <resourceType> - wildcards match allowed (e.g. azurerm*)
-    - provider default - matches all resources of the provider
-    - default - matches all resources  
+    - >> Match to <resourceType> - wildcards match allowed (e.g. azurerm*)
+    - >> provider default - matches all resources of the provider
+    - >> default - matches all resources  
   */
 
-  lowercase_provider = lookup(var.schema.settings.enforceLowerCase, local.resource.provider, {})
-  enforceLowerCase = coalesce(concat(
+  random_uuid = replace(var.schema.random.uuid, "-", "")
+
+  # The lowercase settings for the specific provider
+  lowercase_provider = lookup(var.schema.enforce_lower_case, local.resource.provider, {})
+  enforce_lower_case = coalesce(concat(
     [
-      for resource, lowerCase in local.lowercase_provider :
-      lowerCase if can(regex(replace(resource, "*", ".*"), local.resource.type))
+      # >> Match to <resourceType> - wildcards match allowed (e.g. azurerm*)
+      for resource, lower_case in local.lowercase_provider :
+      lower_case if can(regex(replace(resource, "*", ".*"), local.resource.type))
     ],
     [
+      # >> provider default - matches all resources of the provider
       lookup(local.lowercase_provider, "default", null),
-      lookup(var.schema.settings.enforceLowerCase, "default", false)
+
+      # >> default - matches all resources 
+      lookup(var.schema.enforce_lower_case, "default", false)
     ]
   )...)
+
 
 
   /*
     This checks the schema.mappings for the correct abbreviation for the location.
     It processes the schema mappings in the following order:
-    - Normalize the mapping keys to lowercase.
-    - Iterate over all parameters and lookup the mapping for each parameter.
-    - If a mapping is not found, the parameter is used as is.
+    - >> Normalize the mapping keys to lowercase.
+    - >> Iterate over all parameters and lookup the mapping for each parameter.
+      - >> Lookup the mapping for a parameter, iterate through all values for a match
+      - >> If a mapping is not found, the parameter is used as is.
   */
 
+  # >> Normalize the mapping keys to lowercase.
   custom_mappings = {
+    # This iterates through all parameters in the mappings
+    # - location: <mappings>
+    # - environment: <mappings>
     for parameter, parameter_mappings in var.schema.mappings :
+
+    # This normalizes all mapped parameters names and keys to lowercase
     lower(parameter) => {
-      for key, value in parameter_mappings :
-      lower(key) => value
+      for key, value in parameter_mappings : lower(key) => value
     }
   }
 
+
   parameter_mappings = {
-    for param_name, param_value in merge(var.schema.default_parameter, var.parameters) :
+
+    # >> Iterate over all parameters and lookup the mapping for each parameter.
+    #    Either in default_parameters or the provided var.parameters
+    for param_name, param_value in merge(var.schema.default_parameters, var.parameters) :
+
+
     param_name => coalesce(concat(
       [
+        # >> Lookup the mapping for a parameter, iterate through all values for a match.
         for mapping_name, mapping_value in lookup(local.custom_mappings, lower(param_name), {}) :
+        # - if "West Europe" matches "West Europe" => use lower(euwe)
         mapping_value if lower(param_value) == lower(mapping_name)
       ],
       [
-        # If no mapping is found, use the original parameter value.
+        # >> If a mapping is not found, the parameter is used as is.
         param_value
       ]
     )...)
@@ -84,28 +123,26 @@ locals {
 
   /*
     Modifies the parameters for the naming schema.
-    - Applies the index modifier from the schema settings.
-    - Applies the shortname for the location.
-    - Merges the default parameters with the provided parameters.
-    - Converts all keys to lowercase.
+    - >> Merges the default parameters with the provided parameters.
+    - >> Applies the index modifier from the schema settings.
   */
 
-  index    = var.index.start + var.schema.settings.indexModifier
-  location = coalesce(var.location, lookup(var.schema.default_parameter, "location", "global"))
-
-  parameters_merge = merge(
-    local.parameter_mappings,
+  # >> Merges the default parameters with the provided parameters.
+  parameters = merge(
+    {
+      index = var.index.start
+    },
+    // Will overwrite index when provided via parameters
+    {
+      for key, value in local.parameter_mappings : lower(key) => value
+    },
     {
       abbreviation = local.abbreviation
       type         = local.abbreviation
-      location     = var.schema.locations[local.location]
-      index        = 0 // This is meaningless, but here to avoid errors.
     }
   )
 
-  parameters = {
-    for key, value in local.parameters_merge :
-    lower(key) => value
-  }
+  # >> Applies the index modifier from the schema settings.
+  index = local.parameters.index + var.schema.index_modifier
 
 }
