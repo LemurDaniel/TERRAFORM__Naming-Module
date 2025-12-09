@@ -10,21 +10,19 @@ variable "schema" {
   nullable    = true
   description = "(Required) The schema to use for naming. If not set, the default schema is used."
   type = object({
-    locations = map(string)
-    resources = map(map(string))
 
-    settings = object({
-      indexModifier = optional(number, 1)
-
-      enforceLowerCase = optional(any, {
-        default = true
-      })
+    random = object({
+      uuid = string
     })
 
-    mappings = optional(map(map(string)), {})
+    index_modifier     = number
+    enforce_lower_case = any
 
-    default_parameter = map(any)
-    patterns          = any
+    abbreviations = map(map(string))
+    mappings      = map(map(string))
+    patterns      = any
+
+    default_parameters = map(any)
   })
 }
 

@@ -5,17 +5,17 @@ locals {
     full = var.resource
 
     # provider part of the resource.
-    # - azurerm_storage_account => azurerm
-    provider = split("_", var.resource)[0]
+    # First identifier of cloud provider.
+    provider = split(":", var.resource)[0]
 
     # Retrives the actual resource part.
-    # - azurerm_storage_account::data_lake => storage_account
-    type = join("_", slice(split("_", split("::", var.resource)[0]), 1, length(split("_", var.resource))))
+    # - Microsoft.Compute/virtualMachines => type = virtualMachines
+    type = split(":", var.resource)[1]
 
     # The kind is a modifier for the resource type. 
-    # - azurerm_disk::os    => kind = os
-    # - azurerm_disk::data  => kind = data
-    # - azurerm_disk        => kind = default
+    # - Microsoft.Compute/disks::os       => kind = os
+    # - Microsoft.Compute/disks::data     => kind = data
+    # - Microsoft.Compute/disks           => kind = default
 
     # This is used for
     # - mapping to the correct abbreviation in default.abbreviations.yaml

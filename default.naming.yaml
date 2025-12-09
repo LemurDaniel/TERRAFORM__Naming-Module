@@ -7,12 +7,19 @@
 # - Patterns: Defines the patterns for the naming schema.
 
 #
-# //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-# The settings for the naming schema.
+# ################################################################################################
+# ## (Optional) Define default parameters.
 
-settings:
-  indexModifier: 1
-enforceLowerCase:
+default_parameters:
+  name: poc
+
+#
+# ################################################################################################
+# ## Define general settings.
+
+index_modifier: 1
+
+enforce_lower_case:
   default: true
 
   azurerm:
@@ -33,6 +40,11 @@ mappings:
     production: prod
     test: tst
 
+  location:
+    West Europe: euwe
+    westeurope: euwe
+    europewest: euwe
+
 #
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 # The patterns for the naming schema.
@@ -40,7 +52,7 @@ mappings:
 patterns:
   default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
 
-  azurerm:
+  Azures:
     default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
 
     container_registry:

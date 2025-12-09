@@ -4,9 +4,9 @@
 module "schema" {
   source = "./modules/naming-schema"
 
-  default_naming = yamldecode(file("${path.root}/default.naming.yaml"))
-  default_location = "westeurope"
-  default_parameter = {
+  naming = yamldecode(file("${path.root}/default.naming.yaml"))
+  parameters = {
+    location    = "westeurope"
     environment = "DEVELOPMENT"
     name        = "TEST"
   }
@@ -20,7 +20,7 @@ module "naming_01" {
     count = 10
   }
 
-  resource = "azurerm_disk::os"
+  resource = "Azure:Microsoft.Compute/disks"
 }
 
 
