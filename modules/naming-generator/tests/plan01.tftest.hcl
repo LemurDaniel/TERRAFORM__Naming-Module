@@ -1,42 +1,40 @@
 
-run "setup" {
+run "schema" {
   module {
-    source = "./helper/setup"
+    source = "../naming-schema"
+  }
+
+  variables {
+    parameters = {
+      environment = "test"
+      location    = "westeurope"
+      name        = "tftest"
+    }
   }
 }
 
-variables {
-
-  convention = "default"
-
-  location = "westeurope"
-
-  naming = {
-    environment = "test"
-    name        = "tftest"
-  }
-
-}
-
-
-
-run "virtual_network" {
+run "name_virtual_network" {
   command = plan
   plan_options {
-    mode = normal
+    mode    = normal
     refresh = false
     replace = []
     target  = []
   }
 
   variables {
-    resource_group_reference = setup.resource_group_reference
+    schema   = run.schema
     resource = "azurerm_virtual_network"
+    parameters = {
+      environment = "test"
+      location    = "westeurope"
+      name        = "tftest"
+    }
   }
 
   # verify that the generated name is correct.
   assert {
-    condition     = output.result == "vnet-euwe-test-tftest-01"
+    condition     = output.name == "vnet-euwe-tst-tftest-01"
     error_message = "Generated Name is Invalid"
   }
 }

@@ -6,16 +6,17 @@ locals {
 
     # provider part of the resource.
     # First identifier of cloud provider.
-    provider = split(":", var.resource)[0]
+    # Azure::Microsoft.Compute/disks => provider = Azure
+    provider = split("::", var.resource)[0]
 
     # Retrives the actual resource part.
     # - Microsoft.Compute/virtualMachines => type = virtualMachines
-    type = split(":", var.resource)[1]
+    type = element(split("::", var.resource), -1)
 
     # The kind is a modifier for the resource type. 
-    # - Microsoft.Compute/disks::os       => kind = os
-    # - Microsoft.Compute/disks::data     => kind = data
-    # - Microsoft.Compute/disks           => kind = default
+    # - Azure::Microsoft.Compute/disks::os       => kind = os
+    # - Azure::Microsoft.Compute/disks::data     => kind = data
+    # - Azure::Microsoft.Compute/disks           => kind = default
 
     # This is used for
     # - mapping to the correct abbreviation in default.abbreviations.yaml
@@ -137,6 +138,7 @@ locals {
       for key, value in local.parameter_mappings : lower(key) => value
     },
     {
+      naming_id    = length(var.naming_id) > 0 ? var.naming_id : local.resource.kind
       abbreviation = local.abbreviation
       type         = local.abbreviation
     }

@@ -20,8 +20,6 @@ locals {
     lookup(lookup(local.patterns_provider, local.resource.type, {}), local.resource.kind, null),
     // Match to default
     lookup(local.patterns_provider, "default", null),
-    // Global default
-    lookup(var.schema.patterns, "default", null),
   ]...)
 
 

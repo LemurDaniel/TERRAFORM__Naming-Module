@@ -50,13 +50,13 @@ mappings:
 patterns:
   default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>-<UNIQUE_ID_4>"
 
-  azurerm:
+  Azure:
     default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
 
-    container_registry:
+    Microsoft.ContainerRegistry/registries:
       default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
 
-    storage_account:
+    Microsoft.Storage/storageAccounts:
       default: "<TYPE><LOCATION><ENVIRONMENT><NAME><INDEX;%02s>"
       # <name_id>: "<pattern>"
       # <name_kind>: "<pattern>"

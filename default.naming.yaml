@@ -1,17 +1,8 @@
 #
-# Provide the naming schema for all resources here
-#
-# This is split into three parts:
-# - Settings: Defines the settings for the naming schema.
-# - Mappings: Defines the mappings for the naming schema.
-# - Patterns: Defines the patterns for the naming schema.
-
-#
 # ################################################################################################
 # ## (Optional) Define default parameters.
 
 default_parameters:
-  name: poc
 
 #
 # ################################################################################################
@@ -28,35 +19,44 @@ enforce_lower_case:
     storage_account: true
 
 #
-# //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-# Custom mappings for the naming schema.
-# - A mapping maps one value to another on name generation.
-# - For example on the environment parameter, it maps the environment name to a short form.
+# ################################################################################################
+# ## Define any mappings for the schema.
 
 mappings:
+  # Map location names to their corresponding shortnames.
+  location:
+    global: glob
+
+    westeurope: euwe
+    West Europe: euwe
+
+    germanynorth: geno
+    Germany North: geno
+
+    germanywestcentral: gewc
+    Germany West Central: gewc
+
+  # Use shortened environment names.
   environment:
     development: dev
     staging: stg
-    production: prod
     test: tst
-
-  location:
-    West Europe: euwe
-    westeurope: euwe
-    europewest: euwe
+    production: prod
 
 #
-# //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-# The patterns for the naming schema.
+# ################################################################################################
+# ## Define the patterns for generating names.
 
 patterns:
-  default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
+  default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>-<UNIQUE_ID_4>"
 
-  Azures:
+  Azure:
     default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
 
-    container_registry:
+    Microsoft.ContainerRegistry/registries:
       default: "<TYPE>-<LOCATION>-<ENVIRONMENT>-<NAME>-<INDEX;%02s>"
 
-    storage_account:
-      default: "<TYPE>-<LOCATION><ENVIRONMENT><NAME><INDEX;%02s>"
+    Microsoft.Storage/storageAccounts:
+      default: "<TYPE><LOCATION><ENVIRONMENT><NAME><INDEX;%02s>"
+      # <name_id>: "<pattern>"
+      # <name_kind>: "<pattern>"

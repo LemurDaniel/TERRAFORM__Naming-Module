@@ -39,7 +39,7 @@ output "enforce_lower_case" {
 
 output "abbreviations" {
   description = "Output the resources part of the schema."
-  value       = local.default_abbreviations
+  value       = coalesce(var.abbreviations, local.default_abbreviations)
 }
 
 output "mappings" {
